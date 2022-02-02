@@ -35,3 +35,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Apple Developer AuthKey
+AuthKey.p8
