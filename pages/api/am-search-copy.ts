@@ -22,6 +22,8 @@ export default async function handler(
       return track.isrc;
     });
 
+  console.log(spotifyTracks)
+
   // Iterate over array of ISRCs sequentially to fetch first result from Apple Music for each
 
   return new Promise((resolve, reject) => {

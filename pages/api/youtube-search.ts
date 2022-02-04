@@ -1,34 +1,33 @@
+import { access } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getRecentlyPlayed } from "../../lib/spotify";
-import tokenGenerator from "../../lib/musickit-token";
-import { resolve } from "path/posix";
+import getAccessToken from "../../lib/youtube-token";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<void> {
-  const devToken = await tokenGenerator(); // Get Apple Music developer token
+  const apiKey = process.env.YOUTUBE_API_KEY; // Use YouTube API key from .env.local
   const response = await getRecentlyPlayed(); // Get recently played items from Spotify with metadata
   const { items } = await response.json(); // Parse as json so we can traverse the tree
-
-  const SEARCH_CATALOG_ENDPOINT = `https://api.music.apple.com/v1/catalog/AU/songs`;
+  const accessToken = await getAccessToken(); // Retrieve new YouTube access token
 
   // Filter data to return ISRCs of recently played tracks only
+  // Maybe I can just import this from somewhere else? Otherwise you're going to be running it three times;
+  // memory cost
   const spotifyTracks = items
     .map((track: any) => ({
-      isrc: track.track.external_ids.isrc,
+      artist: track.track.artists.map((data: any) => data.name).join(', '),
+      title: track.track.name,
     }))
     .map(function (track: any) {
-      return track.isrc;
+      return track.title + " - " + track.artist + " (Official Video)"; // String query for YouTUbe
     });
 
-  // Iterate over array of ISRCs sequentially to fetch first result from Apple Music for each
+  console.log(accessToken)
 
-  // Define promise function to call in Promise.all
-
-  // Takes an array of ISRCs (unique song IDs), searches them on Apple Music and returns their Apple Music URLs.
-  // Modified from https://stackoverflow.com/questions/50006595/using-promise-all-to-fetch-a-list-of-urls-with-await-statements
-  // Study this code further to understand more about how it works!
+  // Iterate over array of queries sequentially to fetch first result from YouTUbe for each
+  
   function fetchAll(data) {
     return Promise.all(
       data.map((track) =>
