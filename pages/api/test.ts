@@ -38,7 +38,12 @@ export default async (
   return new Promise((resolve, reject) => {
     fetch(
       `https://api.music.apple.com/v1/catalog/US/songs?filter[isrc]=${recently_played}`, // `https://api.music.apple.com/v1/me/history/heavy-rotation?limit=6`,
-      requestOptions
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${devToken}`
+        }
+      }
     )
       .then((response) => response.text())
       .then((result) => {

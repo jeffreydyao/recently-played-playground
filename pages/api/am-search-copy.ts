@@ -23,7 +23,7 @@ export default async function handler(
     });
 
   // Iterate over array of ISRCs sequentially to fetch first result from Apple Music for each
-  
+
   return new Promise((resolve, reject) => {
     spotifyTracks.map((track) => {
       fetch(
@@ -34,19 +34,12 @@ export default async function handler(
             Authorization: `Bearer ${devToken}`,
           },
         }
-      )
-        .then((response) => response.text())
-        .then((result) => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify(JSON.parse(result).data));
-          resolve();
-        })
-        .catch((error) => {
-          res.json(error);
-          res.status(404).end();
-          return resolve();
-        });
-      });
+      );
     });
-  }
+
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(JSON.parse(results).data));
+    resolve();
+  });
+}
