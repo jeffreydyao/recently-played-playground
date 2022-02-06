@@ -1,41 +1,75 @@
-import { google } from 'googleapis';
+import { google } from "googleapis";
 import { getRecentlyPlayed } from "../../lib/spotify";
 
 let googleAuth;
 
 export default async (_, res) => {
-/*   const response = await getRecentlyPlayed(); // Get recently played items from Spotify with metadata
-  const { items } = await response.json(); // Parse as json so we can traverse the tree */
+  const response = await getRecentlyPlayed(); // Get recently played items from Spotify with metadata
+  const { items } = await response.json(); // Parse as json so we can traverse the tree
+
+  const spotifyTracks = items
+    .map((track) => ({
+      artist: track.track.artists.map((data) => data.name).join(", "),
+      title: track.track.name,
+    }))
+    .map(function (track) {
+      return track.title + " - " + track.artist + " (Official Video)"; // String query for YouTUbe
+    });
+
+  console.log(spotifyTracks);
 
   googleAuth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY
+      private_key: process.env.GOOGLE_PRIVATE_KEY,
     },
-    scopes: ['https://www.googleapis.com/auth/youtube.readonly']
+    scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
   });
 
   const youtube = google.youtube({
     auth: googleAuth,
-    version: 'v3'
+    version: "v3",
   });
 
-  const response = await youtube.search.list({
+  function fetchAll(data) {
+    return Promise.all(
+      data.map((track) =>
+        youtube.search.list({
+          part: "snippet",
+          maxResults: 1,
+          q: `${track}`,
+        })
+      )
+    );
+  }
+
+  const results = await fetchAll(spotifyTracks)
+
+ /*  const results = await spotifyTracks.map((track) =>
+    youtube.search.list({
+      part: "snippet",
+      maxResults: 1,
+      q: `${track}`,
+    })
+  ); */
+
+  console.log(results);
+
+  /*  const results = await youtube.search.list({
     part: 'snippet',
     maxResults: 1,
-    q: "Dusty Locane",
+    q: "KMT - Drake (Official Audio)",
   });
-
-  const search = response.data.items[0];
+ */
+  const search = results.data.items[0];
+  console.log(search);
   const videoId = search.id.videoId;
-  const url = `https://www.youtube.com/watch?v=${videoId}`
-
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
 
   return res.status(200).json({
-    url
+    url,
   });
 };
-
 
 /* 
 // Filter data to return ISRCs of recently played tracks only
